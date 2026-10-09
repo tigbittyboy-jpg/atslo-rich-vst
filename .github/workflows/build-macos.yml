@@ -1,0 +1,23 @@
+name: Build macOS ARM64 VST3
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lukka/get-cmake@latest
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DATSLO_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build --config Release --parallel 3
+      - name: Test
+        run: ctest --test-dir build --output-on-failure -C Release
+      - name: Verify VST3
+        run: test -d "build/ATSLO_Rich_Synth_artefacts/Release/VST3/ATSLO RICH SYNTH.vst3"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ATSLO-RICH-SYNTH-macOS-arm64
+          path: build/ATSLO_Rich_Synth_artefacts/Release/VST3/ATSLO RICH SYNTH.vst3
