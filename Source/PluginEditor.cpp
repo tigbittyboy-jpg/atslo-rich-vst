@@ -19,7 +19,7 @@ ATSLORichSynthAudioProcessorEditor::ATSLORichSynthAudioProcessorEditor(ATSLORich
     setLookAndFeel(&look); setResizable(true,true); setResizeLimits(760,520,1400,900); setSize(1040,680);
     brand.setText("ATSLO",juce::dontSendNotification); brand.setFont(juce::FontOptions(30).withStyle("Bold")); brand.setColour(juce::Label::textColourId,juce::Colour(0xffffc13b));
     subtitle.setText("RICH SYNTH",juce::dontSendNotification); subtitle.setFont(juce::FontOptions(16));
-    juce::Component* visible[] = { &brand, &subtitle, &presetBox, &previous, &next, &importSample, &savePreset, &loadPreset, &waveBox, &keyboard, &meter };
+    juce::Component* visible[] = { &brand, &subtitle, &presetBox, &previous, &next, &importSample, &savePreset, &loadPreset, &waveBox, &wave2Box, &keyboard, &meter };
     for (auto* c : visible) addAndMakeVisible(c);
     for(const auto& pr:processor.presets.factory()) presetBox.addItem(pr.category+"  /  "+pr.name,presetBox.getNumItems()+1);
     presetBox.setSelectedItemIndex(processor.getCurrentProgram(),juce::dontSendNotification);
@@ -28,7 +28,9 @@ ATSLORichSynthAudioProcessorEditor::ATSLORichSynthAudioProcessorEditor(ATSLORich
     next.onClick=[this]{ presetBox.setSelectedItemIndex((presetBox.getSelectedItemIndex()+1)%presetBox.getNumItems()); };
     waveBox.addItemList({"SINE","SAW","SQUARE","TRIANGLE","NOISE"},1);
     waveAttachment=std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(processor.state,"wave",waveBox);
-    const std::pair<const char*,const char*> items[]={{"BLEND","blend"},{"DETUNE","detune"},{"ATTACK","attack"},{"DECAY","decay"},
+    wave2Box.addItemList({"SINE 2","SAW 2","SQUARE 2","TRIANGLE 2","NOISE 2"},1);
+    wave2Attachment=std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(processor.state,"wave2",wave2Box);
+    const std::pair<const char*,const char*> items[]={{"BLEND","blend"},{"OSC MIX","oscMix"},{"FM","fm"},{"SUB","sub"},{"NOISE","noise"},{"DETUNE","detune"},{"ATTACK","attack"},{"DECAY","decay"},
       {"SUSTAIN","sustain"},{"RELEASE","release"},{"CUTOFF","cutoff"},{"RESONANCE","resonance"},{"FILTER ENV","filterEnv"},
       {"DRIVE","drive"},{"CHORUS","chorus"},{"DELAY","delayMix"},{"REVERB","reverb"},{"WIDTH","width"},{"OUTPUT","master"}};
     for(auto item:items) addKnob(item.first,item.second);
@@ -53,8 +55,8 @@ void ATSLORichSynthAudioProcessorEditor::paint(juce::Graphics& g){
 }
 void ATSLORichSynthAudioProcessorEditor::resized(){
     auto area=getLocalBounds().reduced(22); auto top=area.removeFromTop(72); brand.setBounds(top.removeFromLeft(150)); subtitle.setBounds(top.removeFromLeft(120)); previous.setBounds(top.removeFromLeft(34).reduced(2)); next.setBounds(top.removeFromLeft(34).reduced(2)); presetBox.setBounds(top.removeFromLeft(330).reduced(4,14)); importSample.setBounds(top.removeFromRight(130).reduced(3,14)); loadPreset.setBounds(top.removeFromRight(64).reduced(3,14)); savePreset.setBounds(top.removeFromRight(64).reduced(3,14));
-    auto keys=area.removeFromBottom(90); keyboard.setBounds(keys.reduced(2)); auto row=area.removeFromTop(65); waveBox.setBounds(row.removeFromLeft(180).reduced(8,16)); meter.setBounds(row.removeFromRight(120));
-    const int cols=5, rows=3, w=area.getWidth()/cols, h=area.getHeight()/rows;
+    auto keys=area.removeFromBottom(90); keyboard.setBounds(keys.reduced(2)); auto row=area.removeFromTop(65); waveBox.setBounds(row.removeFromLeft(150).reduced(8,16)); wave2Box.setBounds(row.removeFromLeft(150).reduced(8,16)); meter.setBounds(row.removeFromRight(120));
+    const int cols=5, rows=(int(knobs.size())+cols-1)/cols, w=area.getWidth()/cols, h=area.getHeight()/rows;
     for(size_t i=0;i<knobs.size();++i){ int x=int(i)%cols, y=int(i)/cols; auto cell=juce::Rectangle<int>(area.getX()+x*w,area.getY()+y*h,w,h); labels[i]->setBounds(cell.removeFromTop(22)); knobs[i]->setBounds(cell.reduced(8)); }
 }
 void ATSLORichSynthAudioProcessorEditor::timerCallback(){ meter.setText("OUT  "+juce::String(processor.outputLevel.load(),1)+" dB",juce::dontSendNotification); }

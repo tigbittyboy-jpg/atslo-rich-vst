@@ -5,7 +5,8 @@ ATSLORichSynthAudioProcessor::ATSLORichSynthAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       state(*this, nullptr, "ATSLO_STATE", createParameterLayout()), presets(state) {
     auto raw = [this](const char* id) { return state.getRawParameterValue(id); };
-    voiceParams = { raw("blend"), raw("wave"), raw("octave"), raw("detune"), raw("unison"), raw("spread"),
+    voiceParams = { raw("blend"), raw("wave"), raw("wave2"), raw("oscMix"), raw("coarse2"), raw("fm"), raw("sub"), raw("noise"),
+        raw("octave"), raw("detune"), raw("unison"), raw("spread"),
         raw("attack"), raw("decay"), raw("sustain"), raw("release"), raw("cutoff"), raw("resonance"),
         raw("filterEnv"), raw("velocity"), raw("sampleStart"), raw("sampleEnd") };
     effectParams = { raw("drive"), raw("chorus"), raw("delayMix"), raw("delayTime"), raw("reverb"), raw("width"), raw("master") };
@@ -20,6 +21,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout ATSLORichSynthAudioProcessor
     auto add = [&p](auto v) { p.push_back(std::move(v)); };
     add(std::make_unique<F>(juce::ParameterID("blend",1),"Sample Blend",0.f,1.f,0.f));
     add(std::make_unique<C>(juce::ParameterID("wave",1),"Wave",juce::StringArray{"Sine","Saw","Square","Triangle","Noise"},1));
+    add(std::make_unique<C>(juce::ParameterID("wave2",1),"Wave 2",juce::StringArray{"Sine","Saw","Square","Triangle","Noise"},0));
+    add(std::make_unique<F>(juce::ParameterID("oscMix",1),"Osc Mix",0.f,1.f,.35f));
+    add(std::make_unique<F>(juce::ParameterID("coarse2",1),"Osc 2 Semitones",juce::NormalisableRange<float>(-24,24,1),0));
+    add(std::make_unique<F>(juce::ParameterID("fm",1),"FM",0.f,1.f,0.f));
+    add(std::make_unique<F>(juce::ParameterID("sub",1),"Sub",0.f,1.f,.1f));
+    add(std::make_unique<F>(juce::ParameterID("noise",1),"Noise",0.f,1.f,0.f));
     add(std::make_unique<F>(juce::ParameterID("octave",1),"Octave",juce::NormalisableRange<float>(-2,2,1),0));
     add(std::make_unique<F>(juce::ParameterID("detune",1),"Detune",0.f,100.f,18.f));
     add(std::make_unique<F>(juce::ParameterID("unison",1),"Unison",juce::NormalisableRange<float>(1,4,1),2));

@@ -13,7 +13,9 @@ struct SampleData {
 };
 
 struct VoiceParams {
-    std::atomic<float>* blend{}; std::atomic<float>* wave{};
+    std::atomic<float>* blend{}; std::atomic<float>* wave{}; std::atomic<float>* wave2{};
+    std::atomic<float>* oscMix{}; std::atomic<float>* coarse2{}; std::atomic<float>* fm{};
+    std::atomic<float>* sub{}; std::atomic<float>* noise{};
     std::atomic<float>* octave{}; std::atomic<float>* detune{};
     std::atomic<float>* unison{}; std::atomic<float>* spread{};
     std::atomic<float>* attack{}; std::atomic<float>* decay{};
@@ -39,14 +41,17 @@ public:
     void pitchWheelMoved(int) override;
     void controllerMoved(int, int) override;
     void renderNextBlock(juce::AudioBuffer<float>&, int, int) override;
+    void prepare(double sampleRate, int blockSize, int channels);
 private:
-    float oscillator(double phase, int shape) const noexcept;
+    static float oscillator(double phase, int shape, double increment) noexcept;
+    static float polyBlep(double phase, double increment) noexcept;
     void updateEnvelopes();
     VoiceParams& p;
     const std::shared_ptr<const SampleBank>& samples;
     juce::ADSR ampEnv, filterEnv;
     juce::dsp::StateVariableTPTFilter<float> filter;
-    double phase1 = 0, phase2 = 0, samplePosition = 0, hz = 440;
+    std::array<double, 4> phase1{}, phase2{};
+    double subPhase = 0, samplePosition = 0, hz = 440;
     float level = 0, bend = 1, modWheel = 0;
     int midiNote = 60;
     std::shared_ptr<SampleData> activeSample;

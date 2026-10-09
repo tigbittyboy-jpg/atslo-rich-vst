@@ -3,7 +3,18 @@
 namespace atslo {
 static FactoryPreset make(juce::String name, juce::String category, int wave, float cutoff, float attack,
                           float release, float detune, float blend, float drive, float reverb) {
-    return { std::move(name), std::move(category), {{"wave", float(wave)}, {"cutoff", cutoff}, {"attack", attack},
+    const bool bass = category == "SYNTH BASS", bell = category == "TRAP BELLS", pad = category == "CINEMATIC";
+    const bool brass = category == "RICH BRASS", lead = category == "STREET LEADS";
+    const int seed = name.hashCode();
+    const float variation = float(juce::jlimit(0, 99, std::abs(seed % 100))) / 100.0f;
+    return { std::move(name), std::move(category), {{"wave", float(wave)}, {"wave2", float((wave + (bell ? 3 : 1)) % 4)},
+        {"oscMix", bell ? .62f : brass ? .46f : .25f + variation * .35f}, {"coarse2", bell ? 19.f : brass ? -12.f : bass ? -12.f : pad ? 12.f : lead ? 7.f : 0.f},
+        {"fm", bell ? .35f + variation * .45f : brass ? .12f : bass ? .08f : variation * .18f},
+        {"sub", bass ? .72f : brass ? .18f : .04f}, {"noise", pad ? .08f : brass ? .035f : lead ? .015f : 0.f},
+        {"unison", bass ? 1.f : bell ? 2.f : brass ? 3.f : pad ? 4.f : lead ? 3.f : 2.f},
+        {"spread", bass ? .08f : pad ? .92f : brass ? .58f : .35f + variation * .4f},
+        {"decay", bell ? .45f : brass ? .18f : pad ? 1.8f : .32f}, {"sustain", bell ? .12f : brass ? .62f : pad ? .78f : bass ? .82f : .7f},
+        {"filterEnv", bell ? .55f : brass ? .82f : bass ? .35f : .25f}, {"cutoff", cutoff}, {"attack", attack},
         {"release", release}, {"detune", detune}, {"blend", blend}, {"drive", drive}, {"reverb", reverb}} };
 }
 PresetManager::PresetManager(juce::AudioProcessorValueTreeState& s) : state(s) {
