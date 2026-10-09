@@ -17,7 +17,9 @@ jobs:
         run: ctest --test-dir build --output-on-failure -C Release
       - name: Verify VST3
         run: test -d "build/ATSLO_Rich_Synth_artefacts/Release/VST3/ATSLO RICH SYNTH.vst3"
+      - name: Package VST3 bundle
+        run: ditto -c -k --sequesterRsrc --keepParent "build/ATSLO_Rich_Synth_artefacts/Release/VST3/ATSLO RICH SYNTH.vst3" "ATSLO-RICH-SYNTH-v1.0-macOS-arm64.zip"
       - uses: actions/upload-artifact@v4
         with:
           name: ATSLO-RICH-SYNTH-macOS-arm64
-          path: build/ATSLO_Rich_Synth_artefacts/Release/VST3/ATSLO RICH SYNTH.vst3
+          path: ATSLO-RICH-SYNTH-v1.0-macOS-arm64.zip
